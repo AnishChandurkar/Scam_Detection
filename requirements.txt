@@ -1,0 +1,8 @@
+requests
+rapidfuzz
+pandas
+numpy
+yfinance
+telethon
+youtube-transcript-api
+python-dotenv
