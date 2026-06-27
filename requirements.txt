@@ -6,3 +6,8 @@ yfinance
 telethon
 youtube-transcript-api
 python-dotenv
+transformers
+spacy
+torch
+fastapi
+uvicorn

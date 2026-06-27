@@ -12,7 +12,7 @@ If no stock is mentioned, or data can't be fetched, returns available=False
 NOTE: Yahoo data is ~15 min delayed and intraday history is limited, so this is a
 daily-resolution signal. The math here is exact; only the live fetch needs network.
 """
-import config
+from engine import config
 
 # candidate exchange suffixes for Indian tickers on Yahoo
 _SUFFIXES = [".NS", ".BO"]
@@ -82,7 +82,9 @@ def run(stocks):
         if info is None:
             continue
         sc = _score_from_z(info["volume_z"]) if info["volume_z"] is not None else 0.0
-        info["anomaly"] = abs(info["volume_z"]) >= config.MARKET_Z_FLAG
+        info["anomaly"] = (abs(info["volume_z"]) >= config.MARKET_Z_FLAG
+                            or (info["price_move_pct_1d"] is not None
+                                and abs(info["price_move_pct_1d"]) >= config.MARKET_PRICE_FLAG))
         info["sub_score"] = round(sc, 3)
         results.append(info)
         if sc >= best_score:

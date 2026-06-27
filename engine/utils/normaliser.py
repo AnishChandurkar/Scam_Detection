@@ -1,4 +1,4 @@
-"""Normalizer — every platform's content becomes the same dict before analysis.
+"""Normaliser — every platform's content becomes the same dict before analysis.
 
 Common item schema:
     {

@@ -9,7 +9,7 @@ Whatever can't run is reported as skipped — nothing is faked.
 
     python run_demo.py
 """
-from normalizer import normalize
+from engine.utils.normaliser import normalize
 import engine
 
 EXAMPLES = [
@@ -37,7 +37,7 @@ def main():
         print("\n" + "=" * 78)
         print(engine.pretty(report))
     print("\n" + "=" * 78)
-    print("Done. (Set GEMINI_API_KEY for the model-based NLP layer; "
+    print("Done. (MuRIL runs locally — no API key needed for NLP; "
           "internet access enables the live market check.)")
 
 

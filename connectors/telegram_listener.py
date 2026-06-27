@@ -14,9 +14,9 @@ import sys, os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import config
+from engine import config
 import engine
-from normalizer import from_telegram
+from engine.utils.normaliser import from_telegram
 
 # Public channels/groups to monitor (usernames or t.me links or numeric ids).
 CHANNELS = [
@@ -46,7 +46,7 @@ async def main():
         report = engine.analyze(item)
         print("\n" + engine.pretty(report))
         # append high-risk / review items to a JSONL file for follow-up
-        if report["verdict"] in ("high_risk", "human_review"):
+        if report["verdict"] in ("HIGH_RISK", "REVIEW"):
             with open("flagged.jsonl", "a", encoding="utf-8") as f:
                 f.write(json.dumps(report, ensure_ascii=False) + "\n")
 

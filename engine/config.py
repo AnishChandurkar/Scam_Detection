@@ -9,6 +9,8 @@ except Exception:
     pass  # python-dotenv optional; env vars still work without it
 
 # --- API credentials (from environment) ---
+GEMINI_API_KEY    = os.getenv("GEMINI_API_KEY")
+GEMINI_MODEL      = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")  # stable free-tier model (Q2 2026)
 YOUTUBE_API_KEY   = os.getenv("YOUTUBE_DATA_V3")
 TELEGRAM_API_ID   = os.getenv("TELEGRAM_API_ID")
 TELEGRAM_API_HASH = os.getenv("TELEGRAM_API_HASH")

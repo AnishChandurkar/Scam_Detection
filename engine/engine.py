@@ -4,8 +4,8 @@ analyze(item) runs the three checks in order, passing entities between them
 (NLP extracts the stocks -> market check uses them; NLP extracts the speaker
 -> SEBI check uses them), then produces the final weighted verdict.
 """
-from checks import nlp_check, sebi_check, market_check
-import scoring
+from engine.checks import nlp_check, sebi_check, market_check
+from engine.scoring import scorer
 
 
 def analyze(item):
@@ -20,23 +20,24 @@ def analyze(item):
     # Check 3: market anomaly on the mentioned stocks
     market = market_check.run(stocks)
 
-    verdict = scoring.score([nlp, sebi, market])
+    verdict = scorer.score([nlp, sebi, market])
 
     return {
         "item": {k: item[k] for k in ("platform", "author", "source", "timestamp", "url")},
         "text_preview": (item.get("text", "")[:200]),
         "verdict": verdict["verdict"],
-        "risk": verdict["risk"],
+        "risk_score": verdict["risk_score"],
         "confidence": verdict["confidence"],
+        "signals": verdict["signals"],
+        "weight_breakdown": verdict["weight_breakdown"],
         "checks": {"nlp": nlp, "sebi": sebi, "market": market},
-        "score_breakdown": verdict,
     }
 
 
 def pretty(report):
-    v = report["verdict"].upper()
-    r = report["risk"]
-    line = f"[{v}] risk={r} conf={report['confidence']} | {report['item']['platform']} | {report['item']['author']}"
+    v = report["verdict"]
+    r = report["risk_score"]
+    line = f"[{v}] risk_score={r} conf={report['confidence']} | {report['item']['platform']} | {report['item']['author']}"
     nlp, sebi, market = report["checks"]["nlp"], report["checks"]["sebi"], report["checks"]["market"]
     parts = [
         line,

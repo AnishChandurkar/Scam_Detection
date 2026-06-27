@@ -16,8 +16,8 @@ For the full specification, check logic details, scoring weights, API definition
 
 When working as an agent on this codebase, keep the following in mind:
 
-1. **Modular Checks**: All checks (NLP, SEBI registration, and Market Anomaly) are located in the `checks/` directory and must run independently.
-2. **Scoring and Configuration**: Scoring rules are combined in `scoring.py` according to parameters in `config.py`.
+1. **Modular Checks**: All checks (NLP, SEBI registration, and Market Anomaly) are located in the `engine/checks/` directory and must run independently.
+2. **Scoring and Configuration**: Scoring rules are combined in `engine/scoring/scorer.py` according to parameters in `engine/config.py`.
 3. **Inputs/Outputs**:
-   - Inputs are normalized using `normalizer.py` before checks run.
+   - Inputs are normalized using `engine/utils/normaliser.py` before checks run.
    - Failures in individual checks should be handled gracefully (e.g., fallback/neutral scores) instead of raising exceptions.

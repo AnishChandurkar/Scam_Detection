@@ -13,9 +13,9 @@ import requests
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import config
+from engine import config
 import engine
-from normalizer import from_youtube
+from engine.utils.normaliser import from_youtube
 
 KEYWORDS = [
     "guaranteed stock tip",
@@ -71,7 +71,7 @@ def main():
                 continue
             report = engine.analyze(item)
             print("\n" + engine.pretty(report))
-            if report["verdict"] in ("high_risk", "human_review"):
+            if report["verdict"] in ("HIGH_RISK", "REVIEW"):
                 with open("flagged.jsonl", "a", encoding="utf-8") as f:
                     f.write(json.dumps(report, ensure_ascii=False) + "\n")
 
