@@ -16,18 +16,14 @@ from pydantic import BaseModel, Field
 from engine.utils.normaliser import normalize
 import engine
 
-# ---------------------------------------------------------------------------
-#  Logging
-# ---------------------------------------------------------------------------
+# Logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s  %(name)-22s  %(levelname)-5s  %(message)s",
 )
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-#  FastAPI app
-# ---------------------------------------------------------------------------
+# FastAPI app
 app = FastAPI(
     title="Finfluencer Scam Detection Engine",
     description=(
@@ -39,9 +35,7 @@ app = FastAPI(
 )
 
 
-# ---------------------------------------------------------------------------
-#  Request / Response models (mirrors CLAUDE.md schemas)
-# ---------------------------------------------------------------------------
+# Request / Response models (mirrors CLAUDE.md schemas)
 
 class InputMetadata(BaseModel):
     follower_count: int = 0
@@ -107,9 +101,7 @@ class AnalyseResponse(BaseModel):
     weight_breakdown: WeightBreakdown
 
 
-# ---------------------------------------------------------------------------
-#  Endpoint
-# ---------------------------------------------------------------------------
+# Endpoint
 
 @app.post(
     "/analyse",
@@ -160,9 +152,7 @@ async def analyse(req: AnalyseRequest):
     )
 
 
-# ---------------------------------------------------------------------------
-#  Health check
-# ---------------------------------------------------------------------------
+# Health check
 
 @app.get("/health", include_in_schema=False)
 async def health():

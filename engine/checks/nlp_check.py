@@ -21,9 +21,7 @@ from engine import config
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-#  Lazy singletons — heavy models are loaded once on first call.
-# ---------------------------------------------------------------------------
+# Lazy singletons — heavy models are loaded once on first call.
 _muril_pipeline = None
 _spacy_nlp = None
 
@@ -93,9 +91,7 @@ def _load_spacy():
     return _spacy_nlp
 
 
-# ---------------------------------------------------------------------------
-#  Keyword / phrase scanning (kept from original — Hindi & Hinglish support)
-# ---------------------------------------------------------------------------
+# Keyword / phrase scanning (kept from original — Hindi & Hinglish support)
 SCAM_PHRASES = [
     "buy before", "last chance", "100% sure", "100 percent", "risk free", "risk-free",
     "guaranteed", "guarantee", "sure shot", "sureshot", "multibagger", "multi bagger",
@@ -117,9 +113,7 @@ def _keyword_scan(text):
     return score, hits
 
 
-# ---------------------------------------------------------------------------
-#  MuRIL-based scam classification
-# ---------------------------------------------------------------------------
+# MuRIL-based scam classification
 
 def _classify_muril(text):
     """Run MuRIL text-classification and return a scam probability 0..1,
@@ -160,9 +154,7 @@ def _classify_muril(text):
         return None
 
 
-# ---------------------------------------------------------------------------
-#  Entity extraction — spaCy + regex
-# ---------------------------------------------------------------------------
+# Entity extraction — spaCy + regex
 
 # Regex: $TICKER, "ABC Ltd / Limited / Industries …"
 _TICKER_RE = re.compile(r"\$([A-Za-z]{2,12})\b")
@@ -185,12 +177,12 @@ def _extract_entities(text):
     persons: set[str] = set()
     sebi_numbers: set[str] = set()
 
-    # --- Regex-based extraction (always runs) ---
+    # Regex-based extraction (always runs)
     stocks.update(m.group(1) for m in _TICKER_RE.finditer(text))
     stocks.update(m.group(1).strip() for m in _LTD_RE.finditer(text))
     sebi_numbers.update(m.group(1) for m in _SEBI_REG_RE.finditer(text))
 
-    # --- spaCy NER ---
+    # spaCy NER
     nlp = _load_spacy()
     if nlp is not None:
         try:
@@ -211,9 +203,7 @@ def _extract_entities(text):
     }
 
 
-# ---------------------------------------------------------------------------
-#  Public entry point — called by engine.py
-# ---------------------------------------------------------------------------
+# Public entry point — called by engine.py
 
 def run(item):
     """Analyse the text of *item* and return an NLP check result dict.
@@ -238,7 +228,7 @@ def run(item):
     # 3. Entity extraction (spaCy + regex)
     entities = _extract_entities(text)
 
-    # --- Combine scores ----
+    # Combine scores
     if muril_prob is not None:
         # Trust MuRIL but let strong keyword signal raise the floor.
         sub_score = max(muril_prob, kw_score * 0.9)

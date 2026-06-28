@@ -12,9 +12,7 @@ Output conforms to the schema defined in CLAUDE.md:
 from engine import config
 
 
-# ---------------------------------------------------------------------------
-#  Signal mappers — translate each check's internal dict into the public schema
-# ---------------------------------------------------------------------------
+# Signal mappers — translate each check's internal dict into the public schema
 
 def _map_nlp_signal(result):
     """Build signals.nlp from the nlp_check result dict."""
@@ -60,9 +58,7 @@ def _map_market_signal(result):
     }
 
 
-# ---------------------------------------------------------------------------
-#  Main scorer
-# ---------------------------------------------------------------------------
+# Main scorer
 
 def score(check_results):
     """Combine check outputs into the final verdict payload.
@@ -87,7 +83,7 @@ def score(check_results):
     used_w = sum(config.WEIGHTS[name] for name in present)
     confidence = used_w / total_w if total_w else 0.0
 
-    # --- Edge case: nothing ran ---
+    # Edge case: nothing ran
     if used_w == 0:
         return {
             "risk_score": None,
@@ -107,13 +103,13 @@ def score(check_results):
             "reason": "no checks could run",
         }
 
-    # --- Compute risk score ---
+    # Compute risk score
     risk = sum(
         config.WEIGHTS[name] * present[name]["sub_score"]
         for name in present
     ) / used_w
 
-    # --- Determine verdict ---
+    # Determine verdict
     if confidence < config.MIN_CONFIDENCE:
         verdict = "REVIEW"          # don't over-trust thin evidence
     elif risk >= config.HIGH_RISK_THRESHOLD:
@@ -123,14 +119,14 @@ def score(check_results):
     else:
         verdict = "CLEAR"
 
-    # --- Build signals ---
+    # Build signals
     signals = {
         "nlp": _map_nlp_signal(by_name.get("nlp", {})),
         "sebi_check": _map_sebi_signal(by_name.get("sebi", {})),
         "market_anomaly": _map_market_signal(by_name.get("market", {})),
     }
 
-    # --- Build weight breakdown ---
+    # Build weight breakdown
     weight_breakdown = {
         "nlp_weight": config.WEIGHTS["nlp"],
         "sebi_weight": config.WEIGHTS["sebi"],

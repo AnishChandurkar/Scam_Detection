@@ -1,124 +1,73 @@
-# SEBI Finfluencer / Scam Detection Engine
+# Finfluencer Scam Detection Engine
 
-A platform-agnostic financial scam detection engine. It takes content from social
-platforms, runs it through three independent checks, and outputs a weighted risk
-verdict: **high_risk**, **human_review**, or **cleared**.
+[![Python Version](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com)
+[![Transformers](https://img.shields.io/badge/Transformers-HuggingFace-orange.svg)](https://huggingface.co/transformers)
+
+> 🌐️ English
+
+<!--intro-start-->
+## Introduction
+A platform-agnostic financial scam detection engine. It takes content from social platforms, runs it through three independent checks, and outputs a weighted risk verdict: **high_risk**, **human_review**, or **cleared**.
 
 ```
 content ──► normalizer ──► [Check 1: NLP] ──► [Check 2: SEBI reg] ──► [Check 3: market] ──► weighted score ──► verdict
 ```
 
----
+For full system architecture, schemas, and check details, refer to [CLAUDE.md](CLAUDE.md).
 
-## The Three Checks
+## Features
 
-1. **NLP (`engine/checks/nlp_check.py`)** — keyword/phrase scan for pump-and-tip
-   language (English + Hindi/Hinglish), a **MuRIL** (`google/muril-base-cased`)
-   transformer for scam-language classification, and **spaCy** NER for entity
-   extraction (stock tickers, person names, SEBI registration numbers). If the
-   MuRIL model fails to load it falls back to keyword-only scoring.
-2. **SEBI registration (`engine/checks/sebi_check.py`)** — fuzzy-matches the author
-   against SEBI's **Investment Adviser (INA…)** and **Research Analyst (INH…)**
-   registries with RapidFuzz, and detects a disclosed registration number in the
-   content. Unregistered → strong red flag.
-3. **Market anomaly (`engine/checks/market_check.py`)** — pulls recent NSE/BSE volume
-   via **yfinance** and computes a volume **Z-score** vs the 30-day baseline.
-   Big spike → possible pump-and-dump.
+* **Multilingual NLP Layer**: Keyword and phrase scan for pump-and-tip language (English + Hindi/Hinglish), supported by a local MuRIL transformer model (`google/muril-base-cased`) for scam classification.
+* **Entity Extraction**: Custom spaCy NER pipeline supplemented by regex to extract stock tickers, person names, and SEBI registration numbers.
+* **SEBI Registration Verification**: Fuzzy matches authors against SEBI's Investment Adviser (RIA) and Research Analyst (RA) registry using RapidFuzz, and verifies regex-extracted registration numbers.
+* **Market Anomaly Detection**: Pulls historical daily NSE/BSE volume via yfinance and computes a Z-score baseline to flag unusual volume and price spikes.
+* **Dynamic Scorer & Confidence Engine**: Renormalizes weights on skipped checks and routes low-confidence scenarios to manual human review.
 
-Checks combine with configurable weights (`engine/config.py`). Skipped checks are
-dropped and weights renormalized; if too little evidence ran, the verdict
-defaults to **human_review** instead of guessing.
+## Quick start
 
----
+Step 1: Setup and Installation
 
-## Prerequisites
+1. Clone the repository and navigate to the project directory:
+   ```bash
+   git clone <repo-url>
+   cd Scam_Detection
+   ```
+2. Create and activate a virtual environment (recommended):
+   ```bash
+   python -m venv venv
+   # Windows
+   venv\Scripts\activate
+   # macOS / Linux
+   source venv/bin/activate
+   ```
+3. Install the dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Download the spaCy language model:
+   ```bash
+   python -m spacy download en_core_web_sm
+   ```
 
-- **Python 3.11+**
-- **pip** (or a virtual-environment tool of your choice)
-- Internet access for the first run (to download MuRIL weights, spaCy model, and
-  market data from Yahoo Finance)
+Step 2: Run the Demo task
 
----
+5. Execute the built-in demo script:
+   ```bash
+   python run_demo.py
+   ```
+   *Note: On the first run, the MuRIL model weights (~900 MB) will be downloaded and cached by HuggingFace. Subsequent runs load from local cache.*
 
-## Setup
+Step 3: Launch live connectors and scanners
 
-### 1. Clone the repository
-
-```bash
-git clone <repo-url>
-cd Scam_Detection
-```
-
-### 2. Create a virtual environment (recommended)
-
-```bash
-python -m venv venv
-
-# Windows
-venv\Scripts\activate
-
-# macOS / Linux
-source venv/bin/activate
-```
-
-### 3. Install Python dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Download the spaCy language model
-
-```bash
-python -m spacy download en_core_web_sm
-```
-
-
-
-## Running the Engine
-
-### Quick demo (recommended first step)
-
-```bash
-python run_demo.py
-```
-
-This runs the full pipeline on three built-in example posts (a scam tip, a
-benign observation, and a registered advisor post) and prints the verdict for
-each. On the **first run** MuRIL weights (~900 MB) are downloaded and cached by
-HuggingFace — subsequent runs load from cache and are much faster.
-
-Example output:
-
-```
-==============================================================================
-[HIGH_RISK] risk=0.82 conf=1.0 | telegram | Pump Tips Daily
-  text: '🚀 SURE SHOT TIP! Buy RELIANCE before Monday …'
-  nlp   : 0.8 (muril+keywords) flags=['sure shot', 'guaranteed', 'insider', …]
-  sebi  : 1.0 (unregistered) match=None @ None
-  market: 0.45 (checked)
-==============================================================================
-```
-
-### Live Telegram monitoring
-
-```bash
-python -m connectors.telegram_listener
-```
-
-Requires `TELEGRAM_API_ID` and `TELEGRAM_API_HASH` in `.env`. Listens to
-configured channels and runs each message through the engine in real time.
-
-### YouTube scanning
-
-```bash
-python -m connectors.youtube_poller
-```
-
-Requires `YOUTUBE_DATA_V3` in `.env`. Polls configured channels on a schedule
-and analyses new video transcripts.
-
----
+6. Start the live Telegram channel listener (requires API keys in `.env`):
+   ```bash
+   python -m connectors.telegram_listener
+   ```
+7. Start the scheduled YouTube poller (requires API key in `.env`):
+   ```bash
+   python -m connectors.youtube_poller
+   ```
 
 ## Project Structure
 
@@ -153,47 +102,29 @@ Scam_Detection/
 └── .env                      # Local environment secrets (ignored)
 ```
 
----
-
 ## Configuration
 
-All tuneable parameters live in `engine/config.py`:
+All tuneable parameters live in `engine/config.py` and can be overridden via environment variables or `.env`:
 
 | Parameter | Default | Description |
 |---|---|---|
-| `WEIGHTS` | `nlp: 0.45, sebi: 0.30, market: 0.25` | Relative weight of each check |
+| `WEIGHTS` | `nlp: 0.30, sebi: 0.40, market: 0.30` | Relative weight of each check |
 | `HIGH_RISK_THRESHOLD` | `0.70` | Score ≥ this → `high_risk` |
 | `REVIEW_THRESHOLD` | `0.40` | Score ≥ this → `human_review` |
 | `MIN_CONFIDENCE` | `0.50` | Minimum fraction of weight that must run |
-| `SEBI_MATCH_THRESHOLD` | `88` | RapidFuzz similarity score for a name match |
+| `SEBI_MATCH_THRESHOLD` | `85` | RapidFuzz similarity score for a name match |
 | `MARKET_Z_FLAG` | `2.0` | Volume Z-score above this flags an anomaly |
 | `MARKET_LOOKBACK` | `40` | Calendar days of history to pull |
 
----
-
 ## The SEBI Registry CSV
 
-`engine/data/sebi_registered_all.csv` ships with a **real 50-row sample** (25 RIA +
-25 RA) so the engine runs out of the box. For full coverage (~1,000 RIA +
-~2,000 RA), run the separate `sebi_scraper.py`, then point `SEBI_CSV` in `.env`
-at its output.
-
----
+The `engine/data/sebi_registered_all.csv` file ships with a **real 50-row sample** (25 RIA + 25 RA) so the engine runs out of the box. For full coverage (~1,000 RIA + ~2,000 RA), run the separate `sebi_scraper.py` (if available), then point `SEBI_CSV` in `.env` at its output.
 
 ## Important Limitations
 
-- **Market data** from Yahoo Finance is ~15 min delayed and intraday history is
-  limited, so Check 3 is a daily-resolution signal, not true real-time.
-- **Entity extraction** of plain stock names (e.g. "RELIANCE" without `$` or
-  `Ltd`) depends on spaCy recognising them as ORG entities — coverage is good
-  but not exhaustive.
-- **MuRIL** ships as a pretrained base model. For best accuracy, fine-tune it on
-  a labelled dataset of scam vs. benign posts. Out of the box it provides a
-  reasonable baseline that is supplemented by the keyword layer.
-- **Not implemented (per scope)**: Whisper transcription (no GPU), Facebook Ad
-  Library, WhatsApp Business API. The Telegram and YouTube connectors are
-  included.
-- This tool **assists** human review — it should not auto-accuse anyone. Treat
-  `human_review` as the default for anything uncertain.
-
----
+* **Market data** from Yahoo Finance is ~15 min delayed and intraday history is limited, so Check 3 is a daily-resolution signal, not true real-time.
+* **Entity extraction** of plain stock names (e.g. "RELIANCE" without `$` or `Ltd`) depends on spaCy recognising them as ORG entities — coverage is good but not exhaustive.
+* **MuRIL** ships as a pretrained base model. For best accuracy, fine-tune it on a labelled dataset of scam vs. benign posts. Out of the box it provides a reasonable baseline that is supplemented by the keyword layer.
+* **Scope Exclusions**: Whisper transcription (no GPU), Facebook Ad Library, and WhatsApp Business API are not implemented. The Telegram and YouTube connectors are included.
+* **Decision Support**: This tool assists human review — it should not auto-accuse anyone. Treat `human_review` as the default for anything uncertain.
+<!--intro-end-->
