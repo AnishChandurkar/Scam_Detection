@@ -73,30 +73,7 @@ pip install -r requirements.txt
 python -m spacy download en_core_web_sm
 ```
 
-> **Note:** If you skip this step the engine will attempt to download
-> `en_core_web_sm` automatically on first run.
 
-### 5. Configure environment variables
-
-```bash
-cp .env.example .env
-```
-
-Open `.env` and fill in the keys you need:
-
-| Variable | Required? | Description |
-|---|---|---|
-| `GEMINI_API_KEY` | No | No longer used by the NLP check (kept for legacy compat) |
-| `YOUTUBE_DATA_V3` | Only for YouTube connector | YouTube Data API v3 key |
-| `TELEGRAM_API_ID` | Only for Telegram connector | Telegram API ID |
-| `TELEGRAM_API_HASH` | Only for Telegram connector | Telegram API hash |
-| `SEBI_CSV` | No | Path to a full SEBI registry CSV (defaults to `engine/data/sebi_registered_all.csv`) |
-| `MURIL_MODEL` | No | Override the HuggingFace model ID (defaults to `google/muril-base-cased`) |
-
-> The **core engine** (`run_demo.py`) requires **no API keys** — MuRIL runs
-> locally and the SEBI check uses the bundled CSV.
-
----
 
 ## Running the Engine
 
@@ -167,10 +144,13 @@ Scam_Detection/
 │   ├── telegram_listener.py  # Live Telegram channel listener
 │   └── youtube_poller.py     # Scheduled YouTube transcript scanner
 ├── run_demo.py               # Quick demo on built-in example posts
-├── requirements.txt
+├── requirements.txt          # Python library dependencies
 ├── CLAUDE.md                 # Full specification and design doc
 ├── AGENTS.md                 # Developer guide for AI agents
-└── .env.example              # Template for secrets
+├── training_dataset_final.csv # Labelled training dataset for NLP check
+├── .gitignore                # Files/folders to ignore in Git
+├── .env.example              # Template for environment secrets
+└── .env                      # Local environment secrets (ignored)
 ```
 
 ---
@@ -217,9 +197,3 @@ at its output.
   `human_review` as the default for anything uncertain.
 
 ---
-
-## Security
-
-Keep all API keys only in `.env` (which is git-ignored). Never commit real
-credentials to source control. If you suspect keys have been exposed, rotate
-them immediately.
